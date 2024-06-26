@@ -1,27 +1,45 @@
 /////////////////////
 // PACKAGE IMPORTS //
 /////////////////////
+// http - Handles server shit
 const http = require('http');
+// fs - File read/write
 const fs = require('fs');
+// url - Gets urls from requests
+const url = require('url');
 
-///////////
-// PAGES //
-///////////
-const index = fs.readFileSync('./pages/index.html', 'utf-8');
+//////////////////////
+// PAGES DEFINITION //
+//////////////////////
+const home = fs.readFileSync('./pages/home.html', 'utf-8');
+const dashboard = fs.readFileSync('./pages/dashboard.html', 'utf-8');
 
 
 ///////////////////
 // CREATE SERVER //
 ///////////////////
 const server = http.createServer((request, response) => {
-    let path = request.url;
+    let {query, pathname: path} = url.parse(request.url, true);
 
     ///////////
     // PAGES //
     ///////////
-    if (path === '/'){
+
+    // Home (signin) Page
+    if (path === '/' || path.toLocaleLowerCase() === '/home'){
         response.writeHead(200);
-        response.end(index);
+        response.end(home);
+    }
+    // Dashboard Page
+    else if (path.toLocaleLowerCase() === '/dashboard'){
+        if (query.username){
+            let dashboardResponse = dashboard.replace('{{%USERNAME%}}', query.username);
+            response.end(dashboardResponse);
+        }
+        else{
+            response.writeHead(404);
+            response.end('404: Page not found');
+        }
     }
     else{
         response.writeHead(404);
